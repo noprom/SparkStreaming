@@ -1,4 +1,4 @@
-package com.huntdreams.streaming;
+package com.huntdreams.streaming.ch1;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
