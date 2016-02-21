@@ -1,7 +1,6 @@
 package com.huntdreams.streaming;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
@@ -17,6 +16,7 @@ public class SparkExample {
     public static void main(String[] args) {
         System.out.println("Creating spark configuration");
         SparkConf conf = new SparkConf();
+        conf.setMaster("local[2]");
         conf.setAppName("First java spark program");
         System.out.println("Creating spark context");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
