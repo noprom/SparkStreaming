@@ -13,7 +13,7 @@ import java.net.Socket;
 public class ClientApp {
 
     public static void main(String[] args) {
-        try{
+        try {
             System.out.println("Defining new Socket");
             ServerSocket serverSocket = new ServerSocket(9087);
             System.out.println("Waiting for incoming connection");

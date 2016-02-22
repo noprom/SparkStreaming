@@ -39,8 +39,8 @@ object ScalaLoadDistributedEvents {
     //4. a2.sinks.spark1.port
     var addresses = new Array[InetSocketAddress](2);
 
-    addresses(0) = new InetSocketAddress("localhost",4949)
-    addresses(1) = new InetSocketAddress("localhost",4950)
+    addresses(0) = new InetSocketAddress("localhost", 4949)
+    addresses(1) = new InetSocketAddress("localhost", 4950)
 
     //Create a Flume Polling Stream which will poll the Sink the get the events
     //from sinks every 2 seconds.
@@ -50,12 +50,12 @@ object ScalaLoadDistributedEvents {
     //2.parallelism  - The Number of concurrent requests this stream should send to the sink.
     //for more information refer to
     //https://spark.apache.org/docs/1.1.0/api/java/org/apache/spark/streaming/flume/FlumeUtils.html
-    val flumeStream = FlumeUtils.createPollingStream(streamCtx,addresses,StorageLevel.MEMORY_AND_DISK_SER_2,1000,1)
+    val flumeStream = FlumeUtils.createPollingStream(streamCtx, addresses, StorageLevel.MEMORY_AND_DISK_SER_2, 1000, 1)
 
     //Define Output Stream Connected to Console for printing the results
     val outputStream = new ObjectOutputStream(Console.out)
     //Invoking custom Print Method for writing Events to Console
-    printValues(flumeStream,streamCtx, outputStream)
+    printValues(flumeStream, streamCtx, outputStream)
 
     //Most important statement which will initiate the Streaming Context
     streamCtx.start();
@@ -69,8 +69,8 @@ object ScalaLoadDistributedEvents {
     def foreachFunc = (rdd: RDD[SparkFlumeEvent]) => {
       val array = rdd.collect()
       println("---------Start Printing Results----------")
-      println("Total size of Events= " +array.size)
-      for(flumeEvent<-array){
+      println("Total size of Events= " + array.size)
+      for (flumeEvent <- array) {
         //This is to get the AvroFlumeEvent from SparkFlumeEvent
         //for printing the Original Data
         val payLoad = flumeEvent.event.getBody()
