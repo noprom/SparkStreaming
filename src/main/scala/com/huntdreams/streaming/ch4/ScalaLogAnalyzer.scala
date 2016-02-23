@@ -18,7 +18,7 @@ class ScalaLogAnalyzer extends Serializable {
    * @param logLine logLine
    * @return
    */
-  def transformLogData(logLine: String): Map[String, String] = {
+  def tansfromLogData(logLine: String): Map[String, String] = {
     //Pattern which will extract the relevant data from Apache Access Log Files
     val LOG_ENTRY_PATTERN =
       """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+) (\S+)" (\d{3}) (\S+)"""
@@ -29,7 +29,7 @@ class ScalaLogAnalyzer extends Serializable {
       System.out.println("Cannot parse logline" + logLine)
     }
     //Finally create a Key/Value pair of extracted data and return to calling program
-    createDataMap(matcher);
+    createDataMap(matcher)
   }
 
   /**
