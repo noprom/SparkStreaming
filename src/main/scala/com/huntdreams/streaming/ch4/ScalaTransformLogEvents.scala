@@ -49,7 +49,13 @@ object ScalaTransformLogEvents {
   /**
    * Define and execute all Transformations to the log data
    */
-  def executeTransformations(dStream: DStream[(String, String)], streamCtx: StreamingContext) {}
+  def executeTransformations(dStream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
+    //Start - Print all attributes of the Apache Access Log
+    printLogValues(dStream, streamCtx)
+    //End - Print all attributes of the Apache Access Log
+    
+
+  }
 
   /**
    * Print the values
@@ -57,7 +63,7 @@ object ScalaTransformLogEvents {
    * @param stream stream
    * @param streamCtx streamCtx
    */
-  def printValues(stream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
+  def printLogValues(stream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
     //Implementing ForEach function for printing all the data in provided DStream
     stream.foreachRDD(foreachFunc)
     def foreachFunc = (rdd: RDD[(String, String)]) => {
