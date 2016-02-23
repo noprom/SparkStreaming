@@ -57,7 +57,9 @@ object ScalaTransformLogEvents {
     // Count the get count
     dStream.filter(x => x._1.equals("method") && x._2.contains("GET")).count().print()
 
-    
+    // Count different urls and their count
+    val newStream = dStream.filter(x => x._1.contains("method")).map(x => (x._2, 1))
+    newStream.reduceByKey(_ + _).print(100)
   }
 
   /**
