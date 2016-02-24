@@ -10,11 +10,11 @@ import org.apache.spark.streaming.flume.FlumeUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 /**
- * ScalaTransformLogEvents
- *
- * @author tyee.noprom@qq.com
- * @time 2/23/16 11:37 AM.
- */
+  * ScalaTransformLogEvents
+  *
+  * @author tyee.noprom@qq.com
+  * @time 2/23/16 11:37 AM.
+  */
 object ScalaTransformLogEvents {
 
   def main(args: Array[String]) {
@@ -47,8 +47,8 @@ object ScalaTransformLogEvents {
   }
 
   /**
-   * Define and execute all Transformations to the log data
-   */
+    * Define and execute all Transformations to the log data
+    */
   def executeTransformations(dStream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
     // Start - Print all attributes of the Apache Access Log
     printLogValues(dStream, streamCtx)
@@ -60,14 +60,57 @@ object ScalaTransformLogEvents {
     // Count different urls and their count
     val newStream = dStream.filter(x => x._1.contains("method")).map(x => (x._2, 1))
     newStream.reduceByKey(_ + _).print(100)
+
+    // Transform the data stream
+    val functionTransformRequestType = (rdd: RDD[(String, String)]) => {
+      rdd.filter(f => f._1.contains("method")).map(x => (x._2, 1)).reduceByKey(_ + _)
+    }
+
+    val transformedRdd = dStream.transform(functionTransformRequestType)
+
+    // How the state of a key should be updated
+    val functionTotalCount = (values: Seq[Int], state: Option[Int]) => {
+      Option(values.sum + state.sum)
+    }
+    streamCtx.checkpoint("checkpointDir")
+    transformedRdd.updateStateByKey(functionTotalCount).print(100)
+
+    //Start - Windowing Operation
+    executeWindowingOperations(dStream,streamCtx)
+    //End - Windowing Operation
   }
 
   /**
-   * Print the values
-   *
-   * @param stream stream
-   * @param streamCtx streamCtx
-   */
+    * executeWindowingOperations
+    *
+    * @param dStream
+    * @param streamCtx
+    */
+  def executeWindowingOperations(dStream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
+    //This Provide the Aggregated Count of all response Codes
+    println("Printing count of Response Code using windowing Operation")
+    val wStream = dStream.window(Seconds(40), Seconds(20))
+    val respCodeStream = wStream.filter(x => x._1.contains("respCode")).map(x => (x._2, 1))
+    respCodeStream.reduceByKey(_ + _).print(100)
+
+    //This provide the Aggregated count of all response Codes by using
+    //WIndow operation in Reduce method
+    println("Printing count of Response Code using reducebyKeyAndWindow Operation")
+    val respCodeStream_1 = dStream.filter(x => x._1.contains("respCode")).map(x => (x._2, 1))
+    respCodeStream_1.reduceByKeyAndWindow((x: Int, y: Int) => x + y, Seconds(40), Seconds(20)).print(100)
+
+    //This will apply and print groupByKeyAndWindow in the Sliding Window
+    println("Applying and Printing groupByKeyAndWindow in a Sliding Window")
+    val respCodeStream_2 = dStream.filter(x => x._1.contains("respCode")).map(x => (x._2, 1))
+    respCodeStream_2.groupByKeyAndWindow(Seconds(40), Seconds(20)).print(100)
+  }
+
+  /**
+    * Print the values
+    *
+    * @param stream    stream
+    * @param streamCtx streamCtx
+    */
   def printLogValues(stream: DStream[(String, String)], streamCtx: StreamingContext): Unit = {
     //Implementing ForEach function for printing all the data in provided DStream
     stream.foreachRDD(foreachFunc)
