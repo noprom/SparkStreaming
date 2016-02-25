@@ -3,6 +3,8 @@ package com.huntdreams.streaming.ch4
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
+import org.json.simple.JSONObject
+
 /**
   * ScalaLogAnalyzer
   *
@@ -85,5 +87,27 @@ class ScalaLogAnalyzer extends Serializable {
   def createSeq(m: Matcher): Seq[(String, String, String, String, String, String, String, String, String)] = {
     Seq((m.group(1), m.group(2), m.group(3), m.group(4), m.group(5),
       m.group(6), m.group(7), m.group(8), m.group(9)))
+  }
+
+
+  /**
+    * Transform the Apache log files and convert them into JSON Format
+    */
+  def tansformLogDataIntoJSON(logLine: String): String = {
+    // Pattern which will extract the relevant data from Apache AccessLog Files
+    val LOG_ENTRY_PATTERN =
+      """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+) (\S+)" (\d{3}) (\S+)"""
+    val PATTERN = Pattern.compile(LOG_ENTRY_PATTERN)
+    val matcher = PATTERN.matcher(logLine)
+    // Matching the pattern for the each line of the Apache access Log file
+    if (!matcher.find()) {
+      System.out.println("Cannot parse logline" + logLine)
+    }
+    // Creating the JSON Formatted String from the Map
+    import scala.collection.JavaConversions._
+    val obj = new JSONObject(mapAsJavaMap(createDataMap(matcher)))
+    val json = obj.toJSONString()
+    println("JSON DATA new One - ", json)
+    json
   }
 }
