@@ -47,5 +47,8 @@ object ScalaFirstSparkSQL {
     println("\n Printing Total Number of Employees in Company_X")
     val allRec = sqlCtx.sql("Select * from company").agg(Map("No_Of_Emp" -> "sum"))
     allRec.collect.foreach(println)
+
+    // Shutdown of the job and avoids any resource leakage that may happen
+    sparkCtx.stop()
   }
 }
