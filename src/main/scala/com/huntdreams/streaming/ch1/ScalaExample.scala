@@ -14,7 +14,7 @@ object ScalaExample {
     println("Creating Spark configuration")
     val conf = new SparkConf()
     conf.setAppName("My First Spark Scala App")
-    conf.setMaster("local")
+//    conf.setMaster("local")
 
     val ctx = new SparkContext(conf)
     val file = "/Users/noprom/Documents/Dev/Spark/Pro/SparkStreaming/pom.xml"
