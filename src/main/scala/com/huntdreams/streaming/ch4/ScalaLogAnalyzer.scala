@@ -3,7 +3,12 @@ package com.huntdreams.streaming.ch4
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
+import org.apache.spark.graphx.VertexId
+import org.apache.spark.graphx.Edge
+import org.apache.spark.streaming.flume.SparkFlumeEvent
 import org.json.simple.JSONObject
+
+import scala.util.Random
 
 /**
   * ScalaLogAnalyzer
@@ -89,7 +94,6 @@ class ScalaLogAnalyzer extends Serializable {
       m.group(6), m.group(7), m.group(8), m.group(9)))
   }
 
-
   /**
     * Transform the Apache log files and convert them into JSON Format
     */
@@ -109,5 +113,63 @@ class ScalaLogAnalyzer extends Serializable {
     val json = obj.toJSONString()
     println("JSON DATA new One - ", json)
     json
+  }
+
+  /**
+    * Utility method for transforming Flume Events into Sequence of
+    * Vertices and Edges
+    */
+  def transformIntoGraph(eventArr: Array[SparkFlumeEvent]):
+  Tuple2[Set[(VertexId, (String))], Set[Edge[String]]] = {
+    println("Start Transformation........")
+    // Defining mutable Sets for holding the Vertices and Edges
+    var verticesSet: Set[(VertexId, String)] = Set()
+    var edgesSet: Set[Edge[String]] = Set()
+    // Creating Map of IP and Vertices ID,
+    // so that we create Edges to the same IP
+    var ipMap: Map[String, Long] = Map()
+    // Looping over the Array of Flume Events
+    for (event <- eventArr) {
+      // Get the Line of Log and Transform into Attribute Map
+      val eventAttrMap = tansfromLogData(new
+          String(event.event.getBody().array()))
+      // Using Random function for defining Unique Vertices ID's
+      // Creating Vertices for IP
+      // Creating new or Getting existing VertexID for IP coming from Events
+      val ip_verticeID: Long =
+        if (ipMap.contains(eventAttrMap.get("IP").get)) {
+          ipMap.get(eventAttrMap.get("IP").get).get
+        } else {
+          // Using Random function for defining Unique Vertex ID's
+          val id = Random.nextLong()
+          // Add to the Map
+          ipMap += (eventAttrMap.get("IP").get -> id)
+          // Return the Value
+          id
+        }
+      // Add Vertex for IP
+      verticesSet += ((ip_verticeID, "IP=" + eventAttrMap.get("IP")))
+      // Creating Vertex for Request
+      val request_verticeID = Random.nextLong()
+      verticesSet +=
+        ((request_verticeID, "Request=" + eventAttrMap.get("request")))
+      // Creating Vertice for Date
+      val date_verticeID = Random.nextLong()
+      verticesSet += ((date_verticeID, "Date=" + eventAttrMap.get("date")))
+      // Creating Vertice for Method
+      val method_verticeID = Random.nextLong()
+      verticesSet +=
+        ((method_verticeID, "Method=" + eventAttrMap.get("method")))
+      // Creating Vertice for Response Code
+      val respCode_verticeID = Random.nextLong()
+      verticesSet +=
+        ((respCode_verticeID, "ResponseCode=" + eventAttrMap.get("respCode")))
+      // Defining Edges. All parameters are //in relation to the User IP
+      edgesSet.+=(Edge(ip_verticeID, request_verticeID, "Request")).+=(Edge(ip_verticeID, date_verticeID, "date"))
+      edgesSet.+=(Edge(ip_verticeID, method_verticeID, "methodType")).+=(Edge(ip_verticeID, respCode_verticeID, "responseCode")
+    }
+    println("End Transformation........")
+    // Finally Return the Tuple of 2 Set containing Vertices and Edges
+    return (verticesSet, edgesSet)
   }
 }
